@@ -1,7 +1,8 @@
 var circleArr = [];
 var circleNum = 150;
 var time = 0;
-var color = "#ff0000";
+var color = "#61dbfb";
+canvas = document.getElementById("rootCanvas");
 function init() {
     // объект который задаёт игровое поле
     colorArr = ['rgba(243,82,92,0.8)','rgba(0,103,76,0.5)','rgba(149,178,58,0.5)','rgba(252,206,68,0.8)','rgba(245,127,79,0.5)'];
@@ -13,6 +14,8 @@ function init() {
     rocket.vY = 1; // скорость по оси у
     rocket.vZ = 1; // z по оси у
     counterX = 0;
+    currentPosX = 0;
+    currentPosY = 0;
     canvas = document.getElementById("rootCanvas");
     cw = canvas.width;
     ch = canvas.height;
@@ -48,7 +51,7 @@ function Circle(x, y, radius, index){
   this.draw = () => {
     context.save();
    context.beginPath();
-   context.arc(this.x,this.y,this.radius,0,Math.PI*2, true);
+   context.arc(this.x + 5.3 ,this.y,this.radius,0,Math.PI*2, true);
    context.strokeStyle = this.color;
    context.lineWidth = 5;
    context.globalAlpha = .5
@@ -74,17 +77,20 @@ function Circle(x, y, radius, index){
 
   }
 }
-function OnDraw()
-			{
-				time = time + 0.2;
+function LineDraw(x){
+
+				time = time + .5;
           context.save();
 				// context.clearRect(0, 0, canvas.width, canvas.height);
 
 				context.beginPath();
-				for(cnt = -1; cnt <= counterX; cnt++)
-				{
-					context.lineTo(cnt, game.height-220 - (Math.random() + Math.cos(time + cnt * 0.04) * 15 ));
-				}
+
+				for(cnt = 0; cnt <= currentPosX+40; cnt++)
+        // for(cnt = -1; cnt <= 50; cnt++)
+  				{
+            // console.log(cnt, game.height-220 - (Math.cos(time + cnt * .4) * 15));
+  					context.lineTo(cnt, currentPosY + (Math.cos(time + cnt * .2) * 3 ));
+  				}
 
 				context.lineWidth = 2;
 				context.strokeStyle = color;
@@ -104,7 +110,7 @@ function draw1() {
     context.fillStyle = '#ccc';
     rocket.draw(); // ракета
     // line.draw();
-    OnDraw();
+
     /*
     Добавляем огонь
     */
@@ -122,7 +128,7 @@ function draw1() {
         points[i].physx();
       }
     }
-
+    LineDraw();
 }
 function rect(color, x, y, width, height) {
     this.color = color; // цвет прямоугольника
@@ -236,14 +242,16 @@ function update() {
     // меняем координаты ракеты
     line.x = rocket.x;
     line.y = rocket.y+100 ;
+    currentPosX = line.x;
+    currentPosY = line.y;
     if (rocket.x > 849) {
       rocket.x = 850;
       counterX += rocket.vX;
-      rocket.y -= Math.sin(counterX/100);
+      rocket.y -= Math.sin(counterX/70);
     } if (rocket.x < 850) {
       rocket.x += rocket.vX;
       counterX = rocket.x;
-      rocket.y -= Math.sin(counterX/100);
+      rocket.y -= Math.sin(counterX/70);
     };
 }
 function initCircles(x, y){
@@ -273,3 +281,136 @@ function play() {
 
 }
 init();
+ready(function() {
+  initializeBackground();
+});
+
+var resizeTimeout;
+var resizeCooldown = 500;
+var lastResizeTime = Date.now();
+function initializeBackground() {
+  canvas = document.getElementById("rootCanvas");
+  canvas.width = canvas.width;
+  canvas.height = canvas.height;
+  window.addEventListener("resize", function() {
+    if (Date.now() - lastResizeTime < resizeCooldown && resizeTimeout) {
+      clearTimeout(resizeTimeout);
+      delete resizeTimeout;
+    }
+
+    lastResizeTime = Date.now();
+    canvas.style.display = "none";
+    resizeTimeout = setTimeout(function() {
+      fadeIn(canvas, 500);
+      initializeStars();
+    }, 500);
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  });
+  initializeStars();
+  (window.requestAnimationFrame && requestAnimationFrame(paintLoop)) ||
+    setTimeout(paintLoop, ms);
+}
+
+var canvas;
+var stars = [];
+
+function rand(max) {
+  return Math.random() * max;
+}
+
+function Star(canvas, size, speed) {
+  this.ctx = canvas.getContext("2d");
+  this.size = size;
+  this.speed = speed;
+  this.x = rand(window.innerWidth);
+  this.y = rand(window.innerHeight);
+}
+
+Star.prototype.animate = function(delta) {
+  this.x += this.speed * delta;
+  this.y -= this.speed * delta;
+  if (this.y < 0) {
+    this.y = window.innerHeight;
+  }
+  if (this.x > window.innerWidth) {
+    this.x = 0;
+  }
+  this.ctx.fillStyle = "#ffffff";
+  this.ctx.fillRect(this.x, this.y, this.size, this.size);
+};
+
+function initializeStars() {
+  var winArea = window.innerWidth * window.innerHeight;
+  var smallStarsDensity = 0.0001;
+  var mediumStarsDensity = 0.00005;
+  var largeStarsDensity = 0.00002;
+  var smallStarsCount = winArea * smallStarsDensity;
+  var mediumStarsCount = winArea * mediumStarsDensity;
+  var largeStarsCount = winArea * largeStarsDensity;
+  stars = [];
+  for (var i = 0; i < smallStarsCount; i++) {
+    stars.push(new Star(canvas, 1, 30));
+  }
+
+  for (var i = 0; i < mediumStarsCount; i++) {
+    stars.push(new Star(canvas, 2, 20));
+  }
+
+  for (var i = 0; i < largeStarsCount; i++) {
+    stars.push(new Star(canvas, 3, 10));
+  }
+}
+
+function drawStars(delta) {
+  for (var i = 0; i < stars.length; i++) {
+    stars[i].animate(delta);
+  }
+}
+
+var ms = 16;
+var lastPaintTime = 0;
+function paintLoop(timestamp) {
+  // canvas.getContext("2d").clearRect(0, 0, canvas.width, canvas.height);
+  var delta =
+    (window.requestAnimationFrame ? timestamp - lastPaintTime : ms) / 1000;
+  if(delta > 0.05){
+    delta = 0.05;
+  }
+  drawStars(delta);
+  (window.requestAnimationFrame && requestAnimationFrame(paintLoop)) ||
+    setTimeout(paintLoop, ms);
+  lastPaintTime = timestamp;
+}
+
+function fadeIn(element, duration, callback) {
+  element.style.opacity = 0;
+  element.style.display = "block";
+
+  var startTime = Date.now();
+  var tick = function() {
+    var newOpacity = (Date.now() - startTime) / duration;
+    if (newOpacity > 1) {
+      newOpacity = 1;
+      callback && callback();
+    } else {
+      (window.requestAnimationFrame && requestAnimationFrame(tick)) ||
+        setTimeout(tick, 16);
+    }
+
+    element.style.opacity = newOpacity;
+  };
+  tick();
+}
+
+function ready(fn) {
+  if (
+    document.attachEvent
+      ? document.readyState === "complete"
+      : document.readyState !== "loading"
+  ) {
+    fn();
+  } else {
+    document.addEventListener("DOMContentLoaded", fn);
+  }
+}
