@@ -2,7 +2,30 @@ var circleArr = [];
 var circleNum = 150;
 var time = 0;
 var color = "#61dbfb";
-canvas = document.getElementById("rootCanvas");
+var doAnim = true;
+var runned;
+var myReq;
+var requestId = null;
+var spring = 1 / 10;
+var friction = .85;
+var colors = ["#6A0000", "#900000", "#902B2B", "#A63232", "#A62626", "#FD5039", "#C12F2A", "#FF6540", "#f93801"];
+var starsRunned;
+var explosions = [];
+// sounds
+
+function getRandomSound() {
+      var loadedSound = ['sounds/explosion0.wav', 'sounds/explosion1.wav', 'sounds/explosion2.wav', 'sounds/explosion3.wav', 'sounds/explosion4.wav', 'sounds/explosion5.wav'];
+      var i = Math.floor((Math.random()*6));
+        return loadedSound[i];
+  }
+
+  function playSound() {
+      var explosion = new Audio(getRandomSound());
+      explosion.volume = .5;
+      explosion.load();
+      explosion.play();
+  }
+
 function init() {
     // объект который задаёт игровое поле
     colorArr = ['rgba(243,82,92,0.8)','rgba(0,103,76,0.5)','rgba(149,178,58,0.5)','rgba(252,206,68,0.8)','rgba(245,127,79,0.5)'];
@@ -31,8 +54,7 @@ function init() {
       let weight = Math.random() * 2 + 2; //speed
     }
     // canvas.onmousemove = playerMove; движение мышки на канвасе, мб пригодится
-    setInterval(play, 1000 / 70);
-    initCircles(10, game.height-250)
+
 }
 function Circle(x, y, radius, index){
   this.x = x;
@@ -60,38 +82,51 @@ function Circle(x, y, radius, index){
   }
 
   this.update = () => {
-    if (this.x + this.radius > cw || this.x - this.radius < 0){
-    this.dx = -this.dx;
+    if (doAnim === true) {
+      if (this.x + this.radius > cw || this.x - this.radius < 0){
+      this.dx = -this.dx;
+      }
+      if (this.y + this.radius > ch || this.y - this.radius < 0){
+        this.dy = -this.dy;
+      }
+      this.life++;
+      if (this.life >= this.maxLife){
+        delete circleArr[this.id];
+      }
+      this.x+=this.dx;
+      this.y+=this.dy;
+      this.dy += this.gravity;
+      this.draw();
+    } if (doAnim === false) {
+      this.x=this.dx;
+      this.y=this.dy;
+      this.dy = this.gravity;
+      this.draw();
     }
-    if (this.y + this.radius > ch || this.y - this.radius < 0){
-      this.dy = -this.dy;
-    }
-    this.life++;
-    if (this.life >= this.maxLife){
-      delete circleArr[this.id];
-    }
-    this.x+=this.dx;
-    this.y+=this.dy;
-    this.dy += this.gravity;
-    this.draw();
+
 
   }
 }
-function LineDraw(x){
+function LineDraw(){
 
 				time = time + .5;
-          context.save();
+        context.save();
 				// context.clearRect(0, 0, canvas.width, canvas.height);
 
 				context.beginPath();
-
+        // context.beginPath();
+        // context.lineWidth = 2;
+        // context.strokeStyle = "#61dbfb";
+        // context.fillStyle = 'transparent';
+        // context.fill();
+        // context.moveTo(currentPosX,currentPosY);
+        // // context.lineTo(0,  game.height - 200);
+        // context.bezierCurveTo(currentPosX/3, currentPosY - Math.random() * 10, currentPosX/3 + currentPosX/3, currentPosY - Math.random() * 10, 0,  game.height - 180);
+        // context.stroke();
 				for(cnt = 0; cnt <= currentPosX+40; cnt++)
-        // for(cnt = -1; cnt <= 50; cnt++)
   				{
-            // console.log(cnt, game.height-220 - (Math.cos(time + cnt * .4) * 15));
   					context.lineTo(cnt, currentPosY + (Math.cos(time + cnt * .2) * 3 ));
   				}
-
 				context.lineWidth = 2;
 				context.strokeStyle = color;
 				context.stroke();
@@ -99,6 +134,7 @@ function LineDraw(x){
 			}
 // Отрисовка игры
 function draw1() {
+
     game.draw(); // рисуем игровое поле
     // fire.draw();
     // рисуем на поле счёт
@@ -137,9 +173,10 @@ function rect(color, x, y, width, height) {
     this.width = width; // ширина
     this.height = height; // высота
     this.draw = function() // Метод рисующий прямоугольник
-    {
+    {context.save();
         context.fillStyle = this.color;
         context.fillRect(this.x, this.y, this.width, this.height);
+        context.restore();
     }
 }
 function rocketModel(x, y, angle) {
@@ -189,7 +226,6 @@ function Point(x, y, speedY, width, color) {
   this.active = true;
 
   this.physx = function () {
-
     this.y += this.speedY;
     this.x += this.speedX;
     this.speedX -= (Math.random() * 2);
@@ -240,30 +276,33 @@ function Point(x, y, speedY, width, color) {
 };
 function update() {
     // меняем координаты ракеты
-    line.x = rocket.x;
-    line.y = rocket.y+100 ;
-    currentPosX = line.x;
-    currentPosY = line.y;
-    if (rocket.x > 849) {
-      rocket.x = 850;
-      counterX += rocket.vX;
-      rocket.y -= Math.sin(counterX/70);
-    } if (rocket.x < 850) {
-      rocket.x += rocket.vX;
-      counterX = rocket.x;
-      rocket.y -= Math.sin(counterX/70);
-    };
+    if (doAnim) {
+      line.x = rocket.x;
+      line.y = rocket.y+100 ;
+      currentPosX = line.x;
+      currentPosY = line.y;
+      if (rocket.x > 849) {
+        rocket.x = 850;
+        counterX += rocket.vX;
+        rocket.y -= Math.sin(counterX/70);
+      } if (rocket.x < 850) {
+        rocket.x += rocket.vX;
+        counterX = rocket.x;
+        rocket.y -= Math.sin(counterX/70);
+      };
+    }
+
 }
 function initCircles(x, y){
  circleArr = [];
- for (var i = 0; i < circleNum; i++){
-  var radius = 3;
-  circleArr.push(new Circle(x, y, radius, i));
-}
+   for (var i = 0; i < circleNum; i++){
+    var radius = 3;
+    circleArr.push(new Circle(x, y, radius, i));
+  }
 }
 
 function animateCircle (){
-  requestAnimationFrame(animateCircle);
+  myReq = requestAnimationFrame(animateCircle);
   if (circleArr.length > 0) {
     for (var i = 0; i < circleArr.length; i++){
      if (circleArr[i] !== undefined) {
@@ -278,35 +317,16 @@ animateCircle();
 function play() {
     draw1(); // отрисовываем всё на холсте
     update(); // обновляем координаты
-
 }
-init();
-ready(function() {
-  initializeBackground();
-});
+
 
 var resizeTimeout;
 var resizeCooldown = 500;
-var lastResizeTime = Date.now();
+// var lastResizeTime = Date.now();
 function initializeBackground() {
   canvas = document.getElementById("rootCanvas");
   canvas.width = canvas.width;
   canvas.height = canvas.height;
-  window.addEventListener("resize", function() {
-    if (Date.now() - lastResizeTime < resizeCooldown && resizeTimeout) {
-      clearTimeout(resizeTimeout);
-      delete resizeTimeout;
-    }
-
-    lastResizeTime = Date.now();
-    canvas.style.display = "none";
-    resizeTimeout = setTimeout(function() {
-      fadeIn(canvas, 500);
-      initializeStars();
-    }, 500);
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-  });
   initializeStars();
   (window.requestAnimationFrame && requestAnimationFrame(paintLoop)) ||
     setTimeout(paintLoop, ms);
@@ -320,28 +340,33 @@ function rand(max) {
 }
 
 function Star(canvas, size, speed) {
-  this.ctx = canvas.getContext("2d");
+  this.context = canvas.getContext("2d");
   this.size = size;
   this.speed = speed;
-  this.x = rand(window.innerWidth);
-  this.y = rand(window.innerHeight);
+  this.x = rand(canvas.width);
+  this.y = rand(canvas.height);
 }
 
 Star.prototype.animate = function(delta) {
-  this.x += this.speed * delta;
-  this.y -= this.speed * delta;
-  if (this.y < 0) {
-    this.y = window.innerHeight;
-  }
-  if (this.x > window.innerWidth) {
-    this.x = 0;
-  }
-  this.ctx.fillStyle = "#ffffff";
-  this.ctx.fillRect(this.x, this.y, this.size, this.size);
+    if (doAnim) {
+      this.x += this.speed * delta;
+      this.y -= this.speed * delta;
+    }
+
+    if (this.y < 0) {
+      this.y = canvas.height;
+    }
+    if (this.x > canvas.width) {
+      this.x = 0;
+    }
+    context.save();
+    this.context.fillStyle = "#ffffff";
+    this.context.fillRect(this.x, this.y, this.size, this.size);
+    context.restore();
 };
 
 function initializeStars() {
-  var winArea = window.innerWidth * window.innerHeight;
+  var winArea = canvas.width * canvas.height;
   var smallStarsDensity = 0.0001;
   var mediumStarsDensity = 0.00005;
   var largeStarsDensity = 0.00002;
@@ -354,11 +379,11 @@ function initializeStars() {
   }
 
   for (var i = 0; i < mediumStarsCount; i++) {
-    stars.push(new Star(canvas, 2, 20));
+    stars.push(new Star(canvas, 2, 100));
   }
 
   for (var i = 0; i < largeStarsCount; i++) {
-    stars.push(new Star(canvas, 3, 10));
+    stars.push(new Star(canvas, 3, 50));
   }
 }
 
@@ -403,14 +428,125 @@ function fadeIn(element, duration, callback) {
   tick();
 }
 
-function ready(fn) {
-  if (
-    document.attachEvent
-      ? document.readyState === "complete"
-      : document.readyState !== "loading"
-  ) {
-    fn();
-  } else {
-    document.addEventListener("DOMContentLoaded", fn);
+function Particle(o) {
+  this.decay = .95; //randomIntFromInterval(80, 95)/100;//
+  this.r = randomIntFromInterval(10, 70);
+  this.R = 100 - this.r;
+  this.angle = Math.random() * 2 * Math.PI;
+  this.center = o; //{x:cx,y:cy}
+  this.pos = {};
+  this.pos.x = this.center.x + this.r * Math.cos(this.angle);
+  this.pos.y = this.center.y + this.r * Math.sin(this.angle);
+  this.dest = {};
+  this.dest.x = this.center.x + this.R * Math.cos(this.angle);
+  this.dest.y = this.center.y + this.R * Math.sin(this.angle);
+  this.color = colors[~~(Math.random() * colors.length)];
+  this.vel = {
+    x: 0,
+    y: 0
+  };
+  this.acc = {
+    x: 0,
+    y: 0
+  };
+
+  this.update = function() {
+    var dx = (this.dest.x - this.pos.x);
+    var dy = (this.dest.y - this.pos.y);
+
+    this.acc.x = dx * spring;
+    this.acc.y = dy * spring;
+    this.vel.x += this.acc.x;
+    this.vel.y += this.acc.y;
+
+    this.vel.x *= friction;
+    this.vel.y *= friction;
+
+    this.pos.x += this.vel.x;
+    this.pos.y += this.vel.y;
+
+    if (this.r > 0) this.r *= this.decay;
   }
+
+  this.draw = function() {
+    context.save();
+    context.fillStyle = this.color;
+
+    context.beginPath();
+    context.arc(this.pos.x, this.pos.y, this.r, 0, 2 * Math.PI);
+    context.fill();
+    context.restore();
+  }
+
+}
+function Draw() {
+  requestId = window.requestAnimationFrame(Draw);
+  context.save()
+  // context.clearRect(0, 0, cw, ch);
+  context.globalCompositeOperation = "lighter";
+  if (Math.random() < .1) {
+    explosions.push(new Explosion());
+  }
+
+  for (var j = 0; j < 1; j++) {
+
+    explosions[j].update();
+    explosions[j].draw();
+
+  }
+  context.restore();
+}
+function Explosion() {
+
+  this.pos = {
+    x: -20,
+    y: game.height-200
+  };
+  this.particles = [];
+  for (var i = 0; i < 50; i++) {
+    this.particles.push(new Particle(this.pos));
+  }
+
+  this.update = function() {
+    for (var i = 0; i < this.particles.length; i++) {
+      this.particles[i].update();
+      if (this.particles[i].r < .5) {
+        this.particles.splice(i, 1)
+      }
+    }
+
+  }
+
+  this.draw = function() {
+    for (var i = 0; i < this.particles.length; i++) {
+      this.particles[i].draw();
+    }
+  }
+}
+function randomIntFromInterval(mn, mx) {
+  return Math.floor(Math.random() * (mx - mn + 1) + mn);
+}
+function startGame() {
+    // playSound();
+    doAnim = true;
+    initializeBackground();
+    // init();
+    runned = setInterval(play, 1000 / 70);
+    initCircles(10, game.height-250);
+    explosions.push(new Explosion());
+    console.log('yep');
+    if (requestId) {
+      window.cancelAnimationFrame(requestId);
+      requestId = null;
+    }
+    cw = canvas.width,
+      cx = cw / 2;
+    ch = canvas.height,
+      cy = ch / 2;
+
+    Draw();
+}
+function stopGame() {
+    doAnim = false;
+    clearInterval(runned);
 }
