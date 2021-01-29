@@ -10,7 +10,6 @@ var spring = 1 / 10;
 var friction = .85;
 var colors = ["#6A0000", "#900000", "#902B2B", "#A63232", "#A62626", "#FD5039", "#C12F2A", "#FF6540", "#f93801"];
 var starsRunned;
-var explosions = [];
 // sounds
 
 function getRandomSound() {
@@ -32,8 +31,10 @@ function init() {
     game = new rect("#000", 0, 0, 1024, 768);
     rocket = new rocketModel( 0, game.height-290, .1);
     line = new Line(0,100);
+    explosion = new Explosion(-20, game.height-200);
+    explosions = [];
     // скорость ракеты
-    rocket.vX = 5; // скорость по оси х
+    rocket.vX = 1; // скорость по оси х
     rocket.vY = 1; // скорость по оси у
     rocket.vZ = 1; // z по оси у
     counterX = 0;
@@ -46,13 +47,6 @@ function init() {
     canvas.height = game.height;
     context = canvas.getContext("2d");
     points = [];
-    numOfpartlces = 100;
-    for (let i = 0; i < numOfpartlces; i++) {
-      let x = 0;
-      let y = 0;
-      let size = Math.random() * 100 + 2;
-      let weight = Math.random() * 2 + 2; //speed
-    }
     // canvas.onmousemove = playerMove; движение мышки на канвасе, мб пригодится
 
 }
@@ -139,10 +133,10 @@ function draw1() {
     // fire.draw();
     // рисуем на поле счёт
     context.font = 'bold 64px courier';
-    context.textAlign = 'center';
+    context.textAlign = 'left';
     context.textBaseline = 'top';
     context.fillStyle = '#ccc';
-    context.fillText(counterX, 200, 200);
+    context.fillText(counterX/100, 200, 200);
     context.fillStyle = '#ccc';
     rocket.draw(); // ракета
     // line.draw();
@@ -484,26 +478,18 @@ function Draw() {
   context.save()
   // context.clearRect(0, 0, cw, ch);
   context.globalCompositeOperation = "lighter";
-  if (Math.random() < .1) {
-    explosions.push(new Explosion());
-  }
-
-  for (var j = 0; j < 1; j++) {
-
-    explosions[j].update();
-    explosions[j].draw();
-
-  }
+  explosion.update();
+  explosion.draw()
   context.restore();
 }
-function Explosion() {
+function Explosion(x,y) {
 
   this.pos = {
-    x: -20,
-    y: game.height-200
+    x: x,
+    y: y
   };
   this.particles = [];
-  for (var i = 0; i < 50; i++) {
+  for (var i = 0; i < 150; i++) {
     this.particles.push(new Particle(this.pos));
   }
 
@@ -528,25 +514,32 @@ function randomIntFromInterval(mn, mx) {
 }
 function startGame() {
     // playSound();
+    document.getElementById('results').classList.remove('open');
     doAnim = true;
     initializeBackground();
-    // init();
+    init();
     runned = setInterval(play, 1000 / 70);
     initCircles(10, game.height-250);
-    explosions.push(new Explosion());
-    console.log('yep');
-    if (requestId) {
-      window.cancelAnimationFrame(requestId);
-      requestId = null;
-    }
     cw = canvas.width,
       cx = cw / 2;
     ch = canvas.height,
       cy = ch / 2;
-
     Draw();
 }
 function stopGame() {
+    document.getElementById('results').classList.add('open');
+    document.getElementById('total').innerText = counterX/100;
     doAnim = false;
-    clearInterval(runned);
+    explosion = new Explosion(currentPosX+70,currentPosY)
+    explosions = [];
+    Draw();
+    function stopAnimation() {
+      clearInterval(runned)
+    }
+    setTimeout(stopAnimation, 230)
+}
+function bang() {
+    explosion = new Explosion(currentPosX+70,currentPosY)
+    explosions = [];
+    Draw();
 }

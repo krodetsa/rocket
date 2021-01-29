@@ -4,13 +4,26 @@
       <link rel="stylesheet" href="./style.css">
   </head>
 	<body>
-		<canvas width="800" height="600" id='rootCanvas'></canvas>
-		<button id='start' onclick="startGame()">
-			Start
-		</button>
-		<button id='stop' onclick="stopGame()">
-			Stop
-		</button>
+		<div class="game-container">
+			<canvas width="800" height="600" id='rootCanvas'></canvas>
+			<div id="results">
+					<p>Results</p>
+					<p id='total'></p>
+			</div>
+		</div>
+		<div class="buttons-test">
+			<button id='start' onclick="startGame()">
+				Start
+			</button>
+			<button id='stop' onclick="stopGame()">
+				Stop
+			</button>
+			<button id='bang' onclick="bang()">
+				Bang
+			</button>
+		</div>
+
+
     <script src="./index.js"></script>
 		<script>init();</script>
 	</body>
