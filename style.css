@@ -8,8 +8,8 @@ body {
   height: 0%;
   width: 99.9%;
   position: absolute;
-  top: 0;
-  background: rgba(	20.8, 23.1, 27.1, 0.7);
+  top: 100%;
+  background: rgba(	20.8, 23.1, 27.1, 0.8);
 
   overflow: hidden;
 }
@@ -19,9 +19,13 @@ body {
 canvas {
   outline: none;
 }
+.hidden {
+  display: none;
+}
 #results.open {
+  top: 0%;
   height: 99.5%;
-  transition: .2s;
+  transition: .7s;
 }
 #results p {
   color: #FFFFFF;

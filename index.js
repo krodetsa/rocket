@@ -32,12 +32,15 @@ function init() {
     rocket = new rocketModel( 0, game.height-290, .1);
     line = new Line(0,100);
     explosion = new Explosion(-20, game.height-200);
+    coin = null;
     explosions = [];
+    stop = false;
     // скорость ракеты
-    rocket.vX = 1; // скорость по оси х
-    rocket.vY = 1; // скорость по оси у
+    rocket.vX = 3; // скорость по оси х
+    rocket.vY = 3; // скорость по оси у
     rocket.vZ = 1; // z по оси у
     counterX = 0;
+    visible = 0;
     currentPosX = 0;
     currentPosY = 0;
     canvas = document.getElementById("rootCanvas");
@@ -104,7 +107,7 @@ function Circle(x, y, radius, index){
 function LineDraw(){
 
 				time = time + .5;
-        context.save();
+        // context.save();
 				// context.clearRect(0, 0, canvas.width, canvas.height);
 
 				context.beginPath();
@@ -124,7 +127,7 @@ function LineDraw(){
 				context.lineWidth = 2;
 				context.strokeStyle = color;
 				context.stroke();
-        context.restore();
+        // context.restore();
 			}
 // Отрисовка игры
 function draw1() {
@@ -136,9 +139,10 @@ function draw1() {
     context.textAlign = 'left';
     context.textBaseline = 'top';
     context.fillStyle = '#ccc';
-    context.fillText(counterX/100, 200, 200);
+    context.fillText(visible/100, 200, 200);
     context.fillStyle = '#ccc';
     rocket.draw(); // ракета
+
     // line.draw();
 
     /*
@@ -167,10 +171,11 @@ function rect(color, x, y, width, height) {
     this.width = width; // ширина
     this.height = height; // высота
     this.draw = function() // Метод рисующий прямоугольник
-    {context.save();
+    {
+      // context.save();
         context.fillStyle = this.color;
         context.fillRect(this.x, this.y, this.width, this.height);
-        context.restore();
+        // context.restore();
     }
 }
 function rocketModel(x, y, angle) {
@@ -180,11 +185,26 @@ function rocketModel(x, y, angle) {
   var rocket = new Image();
   rocket.src = './img/rocket.png';
   this.draw = function() {
-      context.save();
+      // context.save();
       // context.rotate(this.angle * Math.PI / 180);
       context.drawImage(rocket, this.x, this.y, 150, 150);
-      context.restore();
+      // context.restore();
     }
+}
+function CoinModel(x, y, angle){
+  this.x = x; // координата х
+  this.y = y; // координата у
+  this.angle = angle;
+  var coinImg = new Image();
+  coinImg.src = './img/btc.png';
+  this.draw = function() {
+      context.stroke();
+      context.drawImage(coinImg, this.x, this.y, 30, 30);
+    }
+  this.update = function() {
+    this.x -= rocket.vX;
+    this.y = rocket.y+85;
+  }
 }
 function Line (x,y) {
   this.x = x;
@@ -193,8 +213,7 @@ function Line (x,y) {
     this.x = nX;
     this.y = nY;
   }
-  this.draw = function() {
-    context.save();
+  this.draw = function() {;
     context.beginPath();
     context.lineWidth = 2;
     context.strokeStyle = "#61dbfb";
@@ -205,8 +224,6 @@ function Line (x,y) {
     context.bezierCurveTo(this.x/3, this.y - Math.random() * 10, this.x/3 + this.x/3, this.y - Math.random() * 10, 0,  game.height - 180);
     context.stroke();
     context.fill();
-
-    context.restore();
   }
 }
 function Point(x, y, speedY, width, color) {
@@ -275,15 +292,23 @@ function update() {
       line.y = rocket.y+100 ;
       currentPosX = line.x;
       currentPosY = line.y;
+
       if (rocket.x > 849) {
         rocket.x = 850;
         counterX += rocket.vX;
-        rocket.y -= Math.sin(counterX/70);
+        rocket.y -= Math.sin(counterX/50);
       } if (rocket.x < 850) {
         rocket.x += rocket.vX;
         counterX = rocket.x;
-        rocket.y -= Math.sin(counterX/70);
+        rocket.y -= Math.sin(counterX/50);
       };
+    };
+    if (coin !==null && coin.x > 0) {
+      coin.draw();
+      coin.update()
+    };
+    if (stop !== true) {
+      visible = counterX;
     }
 
 }
@@ -353,10 +378,10 @@ Star.prototype.animate = function(delta) {
     if (this.x > canvas.width) {
       this.x = 0;
     }
-    context.save();
+    // context.save();
     this.context.fillStyle = "#ffffff";
     this.context.fillRect(this.x, this.y, this.size, this.size);
-    context.restore();
+    // context.restore();
 };
 
 function initializeStars() {
@@ -463,13 +488,13 @@ function Particle(o) {
   }
 
   this.draw = function() {
-    context.save();
+    // context.save();
     context.fillStyle = this.color;
 
     context.beginPath();
     context.arc(this.pos.x, this.pos.y, this.r, 0, 2 * Math.PI);
     context.fill();
-    context.restore();
+    // context.restore();
   }
 
 }
@@ -492,7 +517,6 @@ function Explosion(x,y) {
   for (var i = 0; i < 150; i++) {
     this.particles.push(new Particle(this.pos));
   }
-
   this.update = function() {
     for (var i = 0; i < this.particles.length; i++) {
       this.particles[i].update();
@@ -514,32 +538,37 @@ function randomIntFromInterval(mn, mx) {
 }
 function startGame() {
     // playSound();
+    // cw = canvas.width,
+    //   cx = cw / 2;
+    // ch = canvas.height,
+    //   cy = ch / 2;
+    document.getElementById('start').classList.toggle('hidden');
+    document.getElementById('stop').classList.toggle('hidden');
+    document.getElementById('addcoin').classList.toggle('hidden');
     document.getElementById('results').classList.remove('open');
     doAnim = true;
+    stop = false;
     initializeBackground();
     init();
     runned = setInterval(play, 1000 / 70);
     initCircles(10, game.height-250);
-    cw = canvas.width,
-      cx = cw / 2;
-    ch = canvas.height,
-      cy = ch / 2;
     Draw();
 }
 function stopGame() {
+    document.getElementById('start').classList.toggle('hidden');
+    document.getElementById('stop').classList.toggle('hidden');
+    document.getElementById('addcoin').classList.toggle('hidden');
     document.getElementById('results').classList.add('open');
     document.getElementById('total').innerText = counterX/100;
-    doAnim = false;
+    stop = true;
     explosion = new Explosion(currentPosX+70,currentPosY)
     explosions = [];
     Draw();
     function stopAnimation() {
-      clearInterval(runned)
+      clearInterval(runned);
     }
-    setTimeout(stopAnimation, 230)
+    setTimeout(stopAnimation, 100);
 }
-function bang() {
-    explosion = new Explosion(currentPosX+70,currentPosY)
-    explosions = [];
-    Draw();
+function addcoin() {
+    coin = new CoinModel( currentPosX, game.height, .1);
 }
