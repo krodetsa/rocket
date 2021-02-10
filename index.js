@@ -13,44 +13,51 @@ var starsRunned;
 // sounds
 
 function getRandomSound() {
-      var loadedSound = ['sounds/explosion0.wav', 'sounds/explosion1.wav', 'sounds/explosion2.wav', 'sounds/explosion3.wav', 'sounds/explosion4.wav', 'sounds/explosion5.wav'];
-      var i = Math.floor((Math.random()*6));
-        return loadedSound[i];
+      var loadedSound = [
+        'sounds/explosion0.wav',
+        'sounds/explosion1.wav',
+        'sounds/explosion2.wav',
+        'sounds/explosion3.wav',
+        'sounds/explosion4.wav',
+        'sounds/explosion5.wav'
+      ];
+    var i = Math.floor((Math.random()*6));
+      return loadedSound[i];
   }
 
   function playSound() {
-      var explosion = new Audio(getRandomSound());
-      explosion.volume = .5;
-      explosion.load();
-      explosion.play();
+    var explosion = new Audio(getRandomSound());
+    explosion.volume = .5;
+    explosion.load();
+    explosion.play();
   }
 
 function init() {
-    // объект который задаёт игровое поле
-    colorArr = ['rgba(243,82,92,0.8)','rgba(0,103,76,0.5)','rgba(149,178,58,0.5)','rgba(252,206,68,0.8)','rgba(245,127,79,0.5)'];
-    game = new rect("#000", 0, 0, 1024, 768);
-    rocket = new rocketModel( 0, game.height-290, .1);
-    line = new Line(0,100);
-    explosion = new Explosion(-20, game.height-200);
-    coin = null;
-    explosions = [];
-    stop = false;
-    // скорость ракеты
-    rocket.vX = 3; // скорость по оси х
-    rocket.vY = 3; // скорость по оси у
-    rocket.vZ = 1; // z по оси у
-    counterX = 0;
-    visible = 0;
-    currentPosX = 0;
-    currentPosY = 0;
-    canvas = document.getElementById("rootCanvas");
-    cw = canvas.width;
-    ch = canvas.height;
-    canvas.width = game.width;
-    canvas.height = game.height;
-    context = canvas.getContext("2d");
-    points = [];
-    // canvas.onmousemove = playerMove; движение мышки на канвасе, мб пригодится
+  // объект который задаёт игровое поле
+  colorArr = ['rgba(243,82,92,0.8)','rgba(0,103,76,0.5)','rgba(149,178,58,0.5)','rgba(252,206,68,0.8)','rgba(245,127,79,0.5)'];
+  game = new rect("#000", 0, 0, 1024, 768);
+  rocket = new rocketModel( 0, game.height-290, .1);
+  line = new Line(0,100);
+  explosion = new Explosion(-20, game.height-200);
+  coin = [];
+  explosions = [];
+  stop = false;
+  // скорость ракеты
+  rocket.vX = 4; // скорость по оси х
+  rocket.vY = 1; // скорость по оси у
+  rocket.vZ = 1; // z по оси у
+  counterX = 0;
+  visible = 0;
+  currentPosX = 0;
+  currentPosY = 0;
+  canvas = document.getElementById("rootCanvas");
+  cw = canvas.width;
+  ch = canvas.height;
+  canvas.width = game.width;
+  canvas.height = game.height;
+  context = canvas.getContext("2d");
+  points = [];
+  // canvas.onmousemove = playerMove; движение мышки на канвасе, мб пригодится
 
 }
 function Circle(x, y, radius, index){
@@ -63,10 +70,8 @@ function Circle(x, y, radius, index){
 
   this.id = index;
   this.life = 0;
-  this.maxLife = Math.random()*(1000-400)+1000;
+  this.maxLife = Math.random()*(1000-400)+2000;
   this.color = colorArr[Math.floor(Math.random()*colorArr.length)];
-
-
   this.draw = () => {
     context.save();
    context.beginPath();
@@ -77,11 +82,10 @@ function Circle(x, y, radius, index){
    context.stroke();
    context.restore();
   }
-
   this.update = () => {
     if (doAnim === true) {
       if (this.x + this.radius > cw || this.x - this.radius < 0){
-      this.dx = -this.dx;
+      this.dx = -this.dx + 5;
       }
       if (this.y + this.radius > ch || this.y - this.radius < 0){
         this.dy = -this.dy;
@@ -100,8 +104,6 @@ function Circle(x, y, radius, index){
       this.dy = this.gravity;
       this.draw();
     }
-
-
   }
 }
 function LineDraw(){
@@ -303,9 +305,18 @@ function update() {
         rocket.y -= Math.sin(counterX/50);
       };
     };
-    if (coin !==null && coin.x > 0) {
-      coin.draw();
-      coin.update()
+    if (coin.length > 0) {
+      coin.map((item, i) => {
+        item.draw();
+      });
+      coin.map((item, i) => {
+        item.update();
+        if (item.x < 0) {
+          coin.splice(i,1)
+        }
+      });
+
+
     };
     if (stop !== true) {
       visible = counterX;
@@ -368,18 +379,18 @@ function Star(canvas, size, speed) {
 
 Star.prototype.animate = function(delta) {
     if (doAnim) {
-      this.x += this.speed * delta;
-      this.y -= this.speed * delta;
+      this.x -= this.speed * delta;
+      this.y += this.speed * delta;
     }
 
-    if (this.y < 0) {
-      this.y = canvas.height;
+    if (this.y > canvas.height) {
+      this.y = 0;
     }
-    if (this.x > canvas.width) {
-      this.x = 0;
+    if (this.x < 0) {
+      this.x = canvas.width;
     }
     // context.save();
-    this.context.fillStyle = "#ffffff";
+    // this.context.fillStyle = "#ffffff";
     this.context.fillRect(this.x, this.y, this.size, this.size);
     // context.restore();
 };
@@ -536,6 +547,20 @@ function Explosion(x,y) {
 function randomIntFromInterval(mn, mx) {
   return Math.floor(Math.random() * (mx - mn + 1) + mn);
 }
+function countTostart(sec) {
+  let count = sec;
+  let timerId = setInterval(() => {
+    if (count > 0) {
+      count = (count - 0.1).toFixed(1);
+    }
+    document.getElementById('startIn').innerText = count
+  }, 100);
+  setTimeout(() => {
+    clearInterval(timerId);
+    document.getElementById('newGame-window').classList.remove('open');
+    startGame()
+  }, sec * 1000);
+}
 function startGame() {
     // playSound();
     // cw = canvas.width,
@@ -555,8 +580,9 @@ function startGame() {
     Draw();
 }
 function stopGame() {
-    document.getElementById('start').classList.toggle('hidden');
+
     document.getElementById('stop').classList.toggle('hidden');
+    document.getElementById('newGame').classList.toggle('hidden');
     document.getElementById('addcoin').classList.toggle('hidden');
     document.getElementById('results').classList.add('open');
     document.getElementById('total').innerText = counterX/100;
@@ -570,5 +596,12 @@ function stopGame() {
     setTimeout(stopAnimation, 100);
 }
 function addcoin() {
-    coin = new CoinModel( currentPosX, game.height, .1);
+    coin.push(new CoinModel( currentPosX, game.height, .1));
+}
+function newGame() {
+  // document.getElementById('start').classList.toggle('hidden');
+  document.getElementById('newGame').classList.toggle('hidden');
+  document.getElementById('results').classList.remove('open');
+  document.getElementById('newGame-window').classList.add('open');
+  countTostart(5);
 }

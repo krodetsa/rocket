@@ -10,6 +10,10 @@
 					<p>Results</p>
 					<p id='total'></p>
 			</div>
+			<div id="newGame-window">
+				<p>New game will start in:</p>
+				<p id='startIn'>0</p>
+			</div>
 		</div>
 		<div class="buttons-test">
 			<button id='start' onclick="startGame()">
@@ -21,11 +25,14 @@
 			<button id='stop' class="hidden" onclick="stopGame()">
 				Stop
 			</button>
+			<button id='newGame' class="hidden" onclick="newGame()">
+				New Game
+			</button>
 
 		</div>
 
 
     <script src="./index.js"></script>
-		<script>init();</script>
+		<script>init()</script>
 	</body>
 </html>
