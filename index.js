@@ -4,7 +4,9 @@ var time = 0;
 var color = "#61dbfb";
 var doAnim = true;
 var runned;
+var donee;
 var myReq;
+var counterLimit = 0;
 var requestId = null;
 var spring = 1 / 10;
 var friction = .85;
@@ -348,7 +350,12 @@ function play() {
     draw1(); // отрисовываем всё на холсте
     update(); // обновляем координаты
 }
-
+function checkDone () {
+  if (+counterLimit <= visible/100) {
+    stopGame();
+    setTimeout(newGame, 3000)
+  }
+}
 
 var resizeTimeout;
 var resizeCooldown = 500;
@@ -562,30 +569,33 @@ function countTostart(sec) {
   }, sec * 1000);
 }
 function startGame() {
+
     // playSound();
     // cw = canvas.width,
     //   cx = cw / 2;
     // ch = canvas.height,
     //   cy = ch / 2;
-    document.getElementById('start').classList.toggle('hidden');
-    document.getElementById('stop').classList.toggle('hidden');
-    document.getElementById('addcoin').classList.toggle('hidden');
-    document.getElementById('results').classList.remove('open');
+    counterLimit = (5 + Math.random(100) * 10).toFixed(1);
+    // document.getElementById('start').classList.toggle('hidden');
+    // document.getElementById('stop').classList.remove('hidden');
+    // document.getElementById('addcoin').classList.remove('hidden');
+    // document.getElementById('results').classList.remove('open');
     doAnim = true;
     stop = false;
     initializeBackground();
     init();
-    runned = setInterval(play, 1000 / 70);
+    runned = setInterval(play, 15);
+    donee = setInterval(() => checkDone(), 15);
+
     initCircles(10, game.height-250);
     Draw();
 }
 function stopGame() {
-
-    document.getElementById('stop').classList.toggle('hidden');
-    document.getElementById('newGame').classList.toggle('hidden');
-    document.getElementById('addcoin').classList.toggle('hidden');
+    // document.getElementById('stop').classList.toggle('hidden');
+    // document.getElementById('newGame').classList.toggle('hidden');
+    // document.getElementById('addcoin').classList.toggle('hidden');
     document.getElementById('results').classList.add('open');
-    document.getElementById('total').innerText = counterX/100;
+    document.getElementById('total').innerText = visible/100;
     stop = true;
     explosion = new Explosion(currentPosX+70,currentPosY)
     explosions = [];
@@ -593,15 +603,21 @@ function stopGame() {
     function stopAnimation() {
       clearInterval(runned);
     }
+    clearInterval(donee);
     setTimeout(stopAnimation, 100);
+    // setTimeout(newGame, 3000);
 }
 function addcoin() {
     coin.push(new CoinModel( currentPosX, game.height, .1));
 }
 function newGame() {
   // document.getElementById('start').classList.toggle('hidden');
-  document.getElementById('newGame').classList.toggle('hidden');
+  // document.getElementById('newGame').classList.toggle('hidden');
   document.getElementById('results').classList.remove('open');
   document.getElementById('newGame-window').classList.add('open');
-  countTostart(5);
+  countTostart(4);
 }
+
+  // if (+counterLimit === visible/100) {
+  //     console.log(stop);
+  // }

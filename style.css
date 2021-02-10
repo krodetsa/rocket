@@ -26,7 +26,8 @@ body {
 }
 canvas {
   outline: none;
-  height: 100% !important
+  height: 100% !important;
+  background: #000;
 }
 .hidden {
   display: none;
@@ -40,6 +41,7 @@ canvas {
 }
 #results p, #newGame-window p {
   color: #FFFFFF;
+  font-weight: 600;
   font-size: 50px;
   margin-top: 50px;
   text-align: center;

@@ -19,13 +19,13 @@
 			<button id='start' onclick="startGame()">
 				Start
 			</button>
-			<button id='addcoin' class="hidden" onclick="addcoin()">
+			<button id='addcoin' onclick="addcoin()">
 				Ставка
 			</button>
-			<button id='stop' class="hidden" onclick="stopGame()">
+			<button id='stop' onclick="stopGame()">
 				Stop
 			</button>
-			<button id='newGame' class="hidden" onclick="newGame()">
+			<button id='newGame' onclick="newGame()">
 				New Game
 			</button>
 
@@ -33,6 +33,9 @@
 
 
     <script src="./index.js"></script>
-		<script>init()</script>
+		<script>
+			init();
+			newGame();
+		</script>
 	</body>
 </html>
