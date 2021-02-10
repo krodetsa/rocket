@@ -605,6 +605,7 @@ function stopGame() {
     }
     clearInterval(donee);
     setTimeout(stopAnimation, 100);
+    setTimeout(clearInterval(donee), 100);
     // setTimeout(newGame, 3000);
 }
 function addcoin() {
