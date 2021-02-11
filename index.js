@@ -618,7 +618,6 @@ function newGame() {
   document.getElementById('newGame-window').classList.add('open');
   countTostart(4);
 }
-
   // if (+counterLimit === visible/100) {
   //     console.log(stop);
   // }
