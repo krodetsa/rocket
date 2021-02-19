@@ -39,13 +39,33 @@ canvas {
 #newGame-window.open {
   height: 100%;
 }
-#results p, #newGame-window p {
+#results p {
+  color: #FFFFFF;
+  font-weight: 600;
+  font-size: 24px;
+  margin-top: 20px;
+  margin-bottom: 20px;
+  text-align: center;
+  text-transform: uppercase;
+  font-family: courier;
+  color: gold;
+}
+#newGame-window p {
   color: #FFFFFF;
   font-weight: 600;
   font-size: 50px;
   margin-top: 50px;
   text-align: center;
   text-transform: uppercase;
-  font-family: courier
+  font-family: courier;
 
+}
+#results #total, #results #winner {
+  /* margin-top: 20px; */
+  font-size: 45px;
+  color: red;
+}
+#results #total, #results #score {
+  color: green;
+  margin-top: 50px;
 }
